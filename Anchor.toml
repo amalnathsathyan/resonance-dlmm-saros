@@ -1,0 +1,23 @@
+[toolchain]
+
+[features]
+resolution = false
+skip-lint = false
+
+[programs.localnet]
+resonance_bot = "85341ciyeLCi7WZ6BhvMBmDyVcih8zNTS4rM7T4KRjqT"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = false

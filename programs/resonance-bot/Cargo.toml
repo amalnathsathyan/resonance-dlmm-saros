@@ -1,0 +1,31 @@
+[package]
+name = "resonance-bot"
+version = "0.1.0"
+description = "Intra-pool arbitrage system for Saros DLMM pools"
+edition = "2021"
+authors = ["Amalnath <x.com/amalnathsathyan>"]
+repository = "https://github.com/amalnathsathyan/resonance-bot"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "resonance_bot"
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = "0.31.1"
+anchor-spl = "0.31.1"
+
+bytemuck = { version = "1.18.0", features = ["derive"] }
+
+thiserror = "1.0"
+borsh = { version = "1.5.1", features = ["derive"] }
+
+fixed = "1.28.0"
+num-traits = "0.2"
