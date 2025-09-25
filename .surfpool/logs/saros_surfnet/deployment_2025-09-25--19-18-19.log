@@ -1,0 +1,11 @@
+[2025-09-25--19-18-24 INFO txtx::svm::deploy_program] Failure Recovery Info - An ephemeral authority account will be created and funded to write to the buffer account.
+[2025-09-25--19-18-24 INFO txtx::svm::deploy_program] Failure Recovery Info - Please save the following information in case the deployment fails and the account needs to be recovered:
+[2025-09-25--19-18-24 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority public key: HT64vdA39u6L2kXkb2K7Qj8QVRVVdyN9dxBLsv3LX1rF
+[2025-09-25--19-18-24 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority secret key: 43g6esiUZMdvEedmoEMesxgDZJaQw2MBcDCRwqQbVknowmjjcGKGH84Fq1PPsrr9DM9DHc8cQtiDus44A5oQ6mSw
+[2025-09-25--19-18-24 INFO txtx::svm::deploy_program] Pending - Sending transaction 1/333
+[2025-09-25--19-18-25 INFO txtx::svm::deploy_program] Account Created - Ephemeral authority account created and funded to write to buffer
+[2025-09-25--19-18-28 INFO txtx::svm::deploy_program] Failure Recovery Info - Creating program buffer account at pubkey 8uPcUpx2h8mUY1UcXzChgFbAbyjs57V41j8omoRpQK2o
+[2025-09-25--19-18-29 INFO txtx::svm::deploy_program] Account Created - Program buffer account created
+[2025-09-25--19-37-54 INFO txtx::svm::deploy_program] Buffer Ready - Writing to buffer account is complete
+[2025-09-25--19-37-58 INFO txtx::svm::deploy_program] Program Created - Program AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx has been deployed
+[2025-09-25--19-38-09 INFO txtx::svm::deploy_program] Complete - Ephemeral authority account closed and leftover funds returned to payer

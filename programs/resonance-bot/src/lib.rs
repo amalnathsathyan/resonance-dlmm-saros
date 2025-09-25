@@ -1,29 +1,42 @@
+#![allow(unexpected_cfgs)]
 use anchor_lang::prelude::*;
 
-// Module tree (keep these in sync with files we’ll paste next)
+pub mod instructions;
 pub mod state;
 pub mod utils;
-pub mod saros_dlmm;
-pub mod instructions;
 pub mod error;
 
-use instructions::*;
-use error::*;
+pub use instructions::*;
 
-// Replace with your actual program ID after `anchor keys sync`
-declare_id!("85341ciyeLCi7WZ6BhvMBmDyVcih8zNTS4rM7T4KRjqT");
+declare_id!("AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx");
 
 #[program]
+
 pub mod resonance_bot {
     use super::*;
 
-    // Core entrypoint: two-swap CPI arbitrage using Saros DLMM
+    pub fn initialize_vault(
+        ctx: Context<InitializeVault>,
+        min_profit_threshold: u64,
+        max_single_trade: u64,
+    ) -> Result<()> {
+        init_handler(ctx, min_profit_threshold, max_single_trade)
+    }
+
+    pub fn deposit_funds(
+        ctx: Context<DepositFunds>,
+        amount_x: u64,
+        amount_y: u64,
+    ) -> Result<()> {
+        deposit_funds_handler(ctx, amount_x, amount_y)
+    }
+
     pub fn execute_arbitrage(
         ctx: Context<ExecuteArbitrage>,
         pool_a_key: Pubkey,
         pool_b_key: Pubkey,
-        max_amount_in: u64,
+        max_amount_in: Option<u64>,
     ) -> Result<()> {
-        instructions::execute_arbitrage::handler(ctx, pool_a_key, pool_b_key, max_amount_in)
+        execute_arbitrage_handler(ctx, pool_a_key, pool_b_key, max_amount_in)
     }
 }

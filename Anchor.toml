@@ -5,7 +5,7 @@ resolution = false
 skip-lint = false
 
 [programs.localnet]
-resonance_bot = "85341ciyeLCi7WZ6BhvMBmDyVcih8zNTS4rM7T4KRjqT"
+resonance_bot = "AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx"
 
 [registry]
 url = "https://api.apr.dev"

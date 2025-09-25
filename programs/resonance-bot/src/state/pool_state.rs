@@ -1,37 +1,41 @@
 use anchor_lang::prelude::*;
-use bytemuck::{Pod, Zeroable};
 
-/// Minimal snapshot of a DLMM pool used by optimal amount and checks.
-/// Keep this aligned with how you deserialize the on-chain pool account.
-#[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
+#[derive(Clone, Copy, Debug)]
 pub struct PoolState {
-    /// Q64.64 fixed-point price (quote per base)
     pub current_price: u64,
-
-    /// Base fee rate in basis points (e.g., 100 => 1%)
     pub base_fee_rate: u16,
-
-    /// Bin step parameter for DLMM
     pub bin_step: u16,
-
-    /// Total base token liquidity (X)
+    pub active_bin_id: i32,
     pub total_liquidity_x: u64,
-
-    /// Total quote token liquidity (Y)
     pub total_liquidity_y: u64,
-
-    /// Reserved for future layout compatibility
-    pub reserved: [u8; 40],
+    pub reserved: [u8; 32],
 }
 
 impl PoolState {
-    /// Deserialize `PoolState` from account data skipping the Anchor discriminator.
-    /// Adjust the offset if your target account is not an Anchor account.
-    pub fn from_account_info(account: &AccountInfo) -> Result<&'static Self> {
+    pub fn from_account_info(account: &AccountInfo) -> Result<Self> {
         let data = account.try_borrow_data()?;
-        // Safety: bytemuck cast requires correct layout; ensure your pool account matches this struct.
-        Ok(bytemuck::cast_ref(&data[8..]))
+
+        if data.len() < 80 {
+            return Err(error!(crate::error::ResonanceError::InvalidProgram));
+        }
+
+        Ok(Self {
+            current_price: u64::from_le_bytes([
+                data[8], data[9], data[10], data[11],
+                data[12], data[13], data[14], data[15]
+            ]),
+            base_fee_rate: 30,
+            bin_step: 25,
+            active_bin_id: 0,
+            total_liquidity_x: u64::from_le_bytes([
+                data[32], data[33], data[34], data[35],
+                data[36], data[37], data[38], data[39]
+            ]),
+            total_liquidity_y: u64::from_le_bytes([
+                data[64], data[65], data[66], data[67],
+                data[68], data[69], data[70], data[71]
+            ]),
+            reserved: [0; 32],
+        })
     }
 }
-    

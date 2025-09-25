@@ -1,0 +1,37 @@
+[2025-09-24--18-38-02 INFO actix_server::builder] starting 5 workers
+[2025-09-24--18-38-02 INFO actix_server::server] Tokio runtime found; starting in existing Tokio runtime
+[2025-09-24--18-38-02 INFO actix_server::server] starting service: "actix-web-service-127.0.0.1:18488", workers: 5, listening on: 127.0.0.1:18488
+[2025-09-24--18-38-02 INFO parity_ws] Listening for new connections on 127.0.0.1:8900.
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Failure Recovery Info - An ephemeral authority account will be created and funded to write to the buffer account.
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Failure Recovery Info - Please save the following information in case the deployment fails and the account needs to be recovered:
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority public key: Cmx2fARpPV8bybzqGrWHDbw2AetwbJVLwNq6MswKCB1q
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority secret key: 3GjEpz5i7FsEoYQ9S1eGfKtwWHwaN4hGGNBgJaQJp6VLtywYYY63f7oDHBZuDuNx9QzKUv7Fc8UGm8sytGLVJjZ1
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Account Created - Ephemeral authority account created and funded to write to buffer
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Failure Recovery Info - Creating program buffer account at pubkey 8i2GnPJDfaihmmWAsKmrrP6B9smXSxkFxGujFAex5kMV
+[2025-09-24--18-38-04 INFO txtx::svm::deploy_program] Account Created - Program buffer account created
+[2025-09-24--18-38-05 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:61417.
+[2025-09-24--18-38-11 INFO txtx::svm::deploy_program] Buffer Ready - Writing to buffer account is complete
+[2025-09-24--18-38-11 INFO txtx::svm::deploy_program] Program Created - Program AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx has been deployed
+[2025-09-24--18-38-11 INFO txtx::svm::deploy_program] Complete - Ephemeral authority account closed and leftover funds returned to payer
+[2025-09-24--18-38-28 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:62256.
+[2025-09-24--18-38-30 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:63332.
+[2025-09-24--18-38-31 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:64019.
+[2025-09-24--18-38-31 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:64662.
+[2025-09-24--18-38-32 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:65339.
+[2025-09-24--18-39-05 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:50242.
+[2025-09-24--18-39-07 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:51232.
+[2025-09-24--18-42-45 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:51715.
+[2025-09-24--18-42-47 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:52761.
+[2025-09-24--18-42-48 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:53043.
+[2025-09-24--18-43-50 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:53720.
+[2025-09-24--18-43-53 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:54736.
+[2025-09-24--18-43-53 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:55005.
+[2025-09-24--19-01-22 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:55666.
+[2025-09-25--15-28-14 INFO actix_web::middleware::logger] 127.0.0.1 "GET /subgraphs.txt?_rsc=3lb4g HTTP/1.1" 200 1663 "http://127.0.0.1:18488/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.098875
+[2025-09-25--15-38-26 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:56716.
+[2025-09-25--15-42-00 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--15-42-00 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--15-42-00 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--15-42-00 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--15-42-00 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--15-42-00 INFO actix_server::accept] accept thread stopped

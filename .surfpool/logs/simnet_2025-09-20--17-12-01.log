@@ -1,0 +1,30 @@
+[2025-09-20--17-12-01 INFO actix_server::builder] starting 5 workers
+[2025-09-20--17-12-01 INFO actix_server::server] Tokio runtime found; starting in existing Tokio runtime
+[2025-09-20--17-12-01 INFO actix_server::server] starting service: "actix-web-service-127.0.0.1:18488", workers: 5, listening on: 127.0.0.1:18488
+[2025-09-20--17-12-01 INFO parity_ws] Listening for new connections on 127.0.0.1:8900.
+[2025-09-20--17-12-03 INFO txtx::svm::deploy_program] Failure Recovery Info - An ephemeral authority account will be created and funded to write to the buffer account.
+[2025-09-20--17-12-03 INFO txtx::svm::deploy_program] Failure Recovery Info - Please save the following information in case the deployment fails and the account needs to be recovered:
+[2025-09-20--17-12-03 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority public key: Et8rFoao6gAmez1Ay2qDhjcbAEMKB8RmFCGetB2hm8XF
+[2025-09-20--17-12-03 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority secret key: C7KQQfPoCjHA372ShAu8BRDxXjmWpB8wJKyWaAQDYp7h5mP7qifXnRkFVmHrPWJodLGhnVzzU4WraVviWZtwRK3
+[2025-09-20--17-12-04 INFO txtx::svm::deploy_program] Account Created - Ephemeral authority account created and funded to write to buffer
+[2025-09-20--17-12-04 INFO txtx::svm::deploy_program] Failure Recovery Info - Creating program buffer account at pubkey GRHi1Cm8VZPTaxasHMPBx2vsqT6DWvM9SQdxcpe3t7X9
+[2025-09-20--17-12-04 INFO txtx::svm::deploy_program] Account Created - Program buffer account created
+[2025-09-20--17-12-08 INFO txtx::svm::deploy_program] Buffer Ready - Writing to buffer account is complete
+[2025-09-20--17-12-08 INFO txtx::svm::deploy_program] Program Created - Program AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx has been deployed
+[2025-09-20--17-12-08 INFO txtx::svm::deploy_program] Complete - Ephemeral authority account closed and leftover funds returned to payer
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000704
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 200 0 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000100
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "POST / HTTP/1.1" 404 0 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000067
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000241
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000100
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000158
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000113
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000133
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000166
+[2025-09-20--17-12-55 INFO actix_web::middleware::logger] 127.0.0.1 "OPTIONS / HTTP/1.1" 400 43 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0" 0.000076
+[2025-09-21--17-37-11 INFO actix_server::worker] shutting down idle worker
+[2025-09-21--17-37-11 INFO actix_server::worker] shutting down idle worker
+[2025-09-21--17-37-11 INFO actix_server::worker] shutting down idle worker
+[2025-09-21--17-37-11 INFO actix_server::accept] accept thread stopped
+[2025-09-21--17-37-11 INFO actix_server::worker] shutting down idle worker
+[2025-09-21--17-37-11 INFO actix_server::worker] shutting down idle worker

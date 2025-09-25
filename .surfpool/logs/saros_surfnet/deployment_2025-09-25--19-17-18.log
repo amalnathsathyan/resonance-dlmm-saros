@@ -1,0 +1,7 @@
+[2025-09-25--19-17-23 INFO txtx::svm::deploy_program] Failure Recovery Info - An ephemeral authority account will be created and funded to write to the buffer account.
+[2025-09-25--19-17-23 INFO txtx::svm::deploy_program] Failure Recovery Info - Please save the following information in case the deployment fails and the account needs to be recovered:
+[2025-09-25--19-17-23 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority public key: 9EiCnMiKDLhcK9C742zPgRxweCGSCGN1pzqq9U6TbzNz
+[2025-09-25--19-17-23 INFO txtx::svm::deploy_program] Failure Recovery Info - Ephemeral authority secret key: 3VBr8u2hEFW18u5RqfD5GmyMwc15JFJAA1FHg5ZYpfVPCPYx72sT7ZxVjcxtnNyV9c9ii3UXKzguv8Nd5gt3BdLa
+[2025-09-25--19-17-23 INFO txtx::svm::deploy_program] Pending - Sending transaction 1/333
+[2025-09-25--19-17-25 ERROR txtx::svm::send_transaction] Failed - Failed to broadcast transaction
+[2025-09-25--19-17-25 ERROR txtx::svm::send_transaction] Failed - error: unable to send and confirm transaction (RPC response error -32002: Transaction simulation failed: Attempt to debit an account but found no record of a prior credit.; )

@@ -1,91 +1,115 @@
-// programs/resonance-bot/src/utils/saros_cpi.rs
-
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
-use crate::saros_dlmm;
+use anchor_lang::solana_program::{instruction::Instruction, program::invoke_signed};
+use anchor_spl::token::{Token, TokenAccount, Mint};
 
-/// Direction tagging for which pool context to pull accounts from.
-#[derive(Debug, Clone, Copy)]
-pub enum PoolType {
-    PoolA,
-    PoolB,
+pub const SAROS_DLMM_PROGRAM_ID: Pubkey = pubkey!("1qbkdrr3z4ryLA7pZykqxvxWPoeifcVKo6ZG9CfkvVE");
+
+const SWAP_INSTRUCTION_DISCRIMINATOR: [u8; 8] = [0xc1, 0x8f, 0xd8, 0x7e, 0x3e, 0x6f, 0x5a, 0xd8];
+
+#[derive(Clone, Copy, Debug)]
+pub struct SwapRequest {
+    pub amount_in: u64,
+    pub minimum_amount_out: u64,
 }
 
-/// Execute a Saros DLMM swap CPI using the vault PDA as signer.
-/// swap_for_y = true means swapping Y->X (spend quote, buy base), false is X->Y (sell base, get quote).
-pub fn execute_saros_swap(
-    ctx: &Context<crate::instructions::ExecuteArbitrage>,
-    amount_in: u64,
-    amount_out_min: u64,
-    swap_for_y: bool,
-    pool: PoolType,
-) -> Result<()> {
-    msg!("🔄 Saros DLMM swap | amount_in={} | min_out={} | swap_for_y={}", amount_in, amount_out_min, swap_for_y);
-
-    // Select accounts based on pool side
-    let (lb_pair, reserve_x, reserve_y) = match pool {
-        PoolType::PoolA => (
-            ctx.accounts.pool_a.to_account_info(),
-            ctx.accounts.vault_a_x.to_account_info(),
-            ctx.accounts.vault_a_y.to_account_info(),
-        ),
-        PoolType::PoolB => (
-            ctx.accounts.pool_b.to_account_info(),
-            ctx.accounts.vault_b_x.to_account_info(),
-            ctx.accounts.vault_b_y.to_account_info(),
-        ),
-    };
-
-    // User (program) token accounts (ATAs) controlled by the vault PDA
-    let (user_token_x, user_token_y) = (
-        ctx.accounts.vault_token_x.to_account_info(),
-        ctx.accounts.vault_token_y.to_account_info(),
-    );
-
-    // Serialize instruction data as per Saros DLMM swap interface
-    let data = saros_dlmm::SwapExactTokensForTokens {
-        amount_in,
-        amount_out_min,
-        swap_for_y,
+impl SwapRequest {
+    pub fn build_instruction_data(&self) -> Vec<u8> {
+        let mut data = Vec::new();
+        data.extend_from_slice(&SWAP_INSTRUCTION_DISCRIMINATOR);
+        data.extend_from_slice(&self.amount_in.to_le_bytes());
+        data.extend_from_slice(&self.minimum_amount_out.to_le_bytes());
+        data
     }
-    .try_to_vec()?;
+}
 
-    // Account metas: validate and reorder as required by Saros DLMM program IDL.
-    // NOTE: Adjust ordering to match Saros DLMM exact instruction layout if it differs.
-    let accounts = vec![
-        AccountMeta::new(lb_pair.key(), false),
-        AccountMeta::new(reserve_x.key(), false),
-        AccountMeta::new(reserve_y.key(), false),
-        AccountMeta::new(user_token_x.key(), false),
-        AccountMeta::new(user_token_y.key(), false),
-        AccountMeta::new_readonly(ctx.accounts.vault.key(), true), // vault PDA is the authority
-        AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-    ];
+pub struct SarosSwapAccounts<'info> {
+    pub lb_pair: AccountInfo<'info>,
+    pub user_position: AccountInfo<'info>,
+    pub bin_array_bitmap_extension: Option<AccountInfo<'info>>,
+    pub user_token_in: Account<'info, TokenAccount>,
+    pub user_token_out: Account<'info, TokenAccount>,
+    pub reserve_in: AccountInfo<'info>,
+    pub reserve_out: AccountInfo<'info>,
+    pub token_mint_in: Account<'info, Mint>,
+    pub token_mint_out: Account<'info, Mint>,
+    pub oracle: AccountInfo<'info>,
+    pub host_fee_in: Option<Account<'info, TokenAccount>>,
+    pub user: Signer<'info>,
+    pub token_x_program: Program<'info, Token>,
+    pub token_y_program: Program<'info, Token>,
+    pub event_authority: AccountInfo<'info>,
+    pub program: AccountInfo<'info>,
+}
 
+impl<'info> SarosSwapAccounts<'info> {
+    pub fn get_account_metas(&self) -> Vec<AccountMeta> {
+        let mut metas = vec![
+            AccountMeta::new(self.lb_pair.key(), false),
+            AccountMeta::new(self.user_position.key(), false),
+            AccountMeta::new(self.user_token_in.key(), false),
+            AccountMeta::new(self.user_token_out.key(), false),
+            AccountMeta::new(self.reserve_in.key(), false),
+            AccountMeta::new(self.reserve_out.key(), false),
+            AccountMeta::new_readonly(self.token_mint_in.key(), false),
+            AccountMeta::new_readonly(self.token_mint_out.key(), false),
+            AccountMeta::new_readonly(self.oracle.key(), false),
+            AccountMeta::new_readonly(self.user.key(), true),
+            AccountMeta::new_readonly(self.token_x_program.key(), false),
+            AccountMeta::new_readonly(self.token_y_program.key(), false),
+            AccountMeta::new_readonly(self.event_authority.key(), false),
+            AccountMeta::new_readonly(self.program.key(), false),
+        ];
+        if let Some(b) = &self.bin_array_bitmap_extension {
+            metas.push(AccountMeta::new(b.key(), false));
+        }
+        if let Some(hf) = &self.host_fee_in {
+            metas.push(AccountMeta::new(hf.key(), false));
+        }
+        metas
+    }
+
+    pub fn get_account_infos(&self) -> Vec<AccountInfo<'info>> {
+        let mut infos = vec![
+            self.lb_pair.clone(),
+            self.user_position.clone(),
+            self.user_token_in.to_account_info(),
+            self.user_token_out.to_account_info(),
+            self.reserve_in.to_account_info(),
+            self.reserve_out.to_account_info(),
+            self.token_mint_in.to_account_info(),
+            self.token_mint_out.to_account_info(),
+            self.oracle.clone(),
+            self.user.to_account_info(),
+            self.token_x_program.to_account_info(),
+            self.token_y_program.to_account_info(),
+            self.event_authority.clone(),
+            self.program.clone(),
+        ];
+        if let Some(b) = &self.bin_array_bitmap_extension {
+            infos.push(b.clone());
+        }
+        if let Some(hf) = &self.host_fee_in {
+            infos.push(hf.to_account_info());
+        }
+        infos
+    }
+}
+
+pub fn saros_swap_exact_tokens_for_tokens(
+    accounts: &SarosSwapAccounts,
+    swap_request: SwapRequest,
+    signer_seeds: Option<&[&[&[u8]]]>,
+) -> Result<()> {
     let ix = Instruction {
-        program_id: saros_dlmm::id(),
-        accounts,
-        data,
+        program_id: SAROS_DLMM_PROGRAM_ID,
+        accounts: accounts.get_account_metas(),
+        data: swap_request.build_instruction_data(),
     };
-
-    // Vault PDA signer seeds
-    let bump = ctx.accounts.vault.load()?.bump;
-    let seeds: &[&[u8]] = &[crate::state::ArbitrageVault::SEED, &[bump]];
-    let signer_seeds: &[&[&[u8]]] = &[&seeds];
-
-    // Invoke CPI
-    let account_infos = &[
-        lb_pair,
-        reserve_x,
-        reserve_y,
-        user_token_x,
-        user_token_y,
-        ctx.accounts.vault.to_account_info(),
-        ctx.accounts.token_program.to_account_info(),
-    ];
-
-    anchor_lang::solana_program::program::invoke_signed(&ix, account_infos, signer_seeds)?;
-
-    msg!("✅ Saros DLMM swap CPI completed");
+    let infos = accounts.get_account_infos();
+    if let Some(seeds) = signer_seeds {
+        invoke_signed(&ix, &infos, seeds)?;
+    } else {
+        anchor_lang::solana_program::program::invoke(&ix, &infos)?;
+    }
     Ok(())
 }
