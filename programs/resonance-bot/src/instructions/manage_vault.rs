@@ -30,8 +30,7 @@ pub struct DepositFunds<'info> {
 
 pub fn deposit_funds_handler(
     ctx: Context<DepositFunds>,
-    amount_x: u64,
-    _amount_y: u64,
+    amount_x: u64
 ) -> Result<()> {
     let vault = &ctx.accounts.vault;
 

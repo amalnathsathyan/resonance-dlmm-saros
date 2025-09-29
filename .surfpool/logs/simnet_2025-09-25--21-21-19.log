@@ -8,3 +8,17 @@
 [2025-09-25--21-21-50 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:57767.
 [2025-09-25--21-21-51 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:58453.
 [2025-09-25--21-21-52 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:59149.
+[2025-09-25--21-24-30 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:60562.
+[2025-09-25--21-27-28 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:61424.
+[2025-09-25--21-27-30 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:62420.
+[2025-09-25--21-28-14 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:63372.
+[2025-09-25--21-28-16 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:64418.
+[2025-09-25--23-18-22 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:52491.
+[2025-09-25--23-18-43 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:53987.
+[2025-09-25--23-18-45 INFO parity_ws::io] Accepted a new tcp connection from 127.0.0.1:55340.
+[2025-09-25--23-35-03 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--23-35-03 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--23-35-03 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--23-35-03 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--23-35-03 INFO actix_server::worker] shutting down idle worker
+[2025-09-25--23-35-03 INFO actix_server::accept] accept thread stopped

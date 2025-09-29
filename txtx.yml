@@ -5,6 +5,12 @@ runbooks:
   - name: deployment
     description: Deploy programs
     location: runbooks/deployment
+  - name: initialize_vault     # Add this new runbook
+    description: Initialize vault with proper accounts
+    location: runbooks/initialize-vault
+  - name: deposit_funds     # Add this new runbook
+    description: Initialize vault with proper accounts
+    location: runbooks/deposit-funds 
 environments:
   localnet:
       network_id: localnet
@@ -16,7 +22,8 @@ environments:
       authority_keypair_json: ~/.config/solana/id.json
   surfnet:
       network_id: surfnet
-      rpc_api_url: https://finds-druse-fico.txtx.network:8899/
+      rpc_api_url: https://tiled-talcs-mars.txtx.network:8899/
       payer_keypair_json: ~/.config/solana/id.json
       authority_keypair_json: ~/.config/solana/id.json
+
 

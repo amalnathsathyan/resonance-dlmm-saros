@@ -26,9 +26,8 @@ pub mod resonance_bot {
     pub fn deposit_funds(
         ctx: Context<DepositFunds>,
         amount_x: u64,
-        amount_y: u64,
     ) -> Result<()> {
-        deposit_funds_handler(ctx, amount_x, amount_y)
+        deposit_funds_handler(ctx, amount_x)
     }
 
     pub fn execute_arbitrage(

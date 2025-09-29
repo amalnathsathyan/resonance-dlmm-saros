@@ -1,0 +1,99 @@
+addon "svm" {
+    rpc_api_url = input.rpc_api_url
+    network_id = input.network_id
+}
+
+signer "user" "svm::secret_key" {
+    keypair_json = "/Users/amalnathsathyan/Documents/trycatchblock/my-projects/resonance-bot/tests/test-keys/user.json"
+}
+
+signer "authority" "svm::secret_key"{
+    keypair_json = "~/.config/solana/id.json"
+}
+
+variable "program" {
+    description = "The resonance bot program to invoke."
+    value = svm::get_program_from_anchor_project("resonance_bot")
+}
+
+variable "saros_mint" {
+    description = "The SAROS token mint address"
+    value = "SarosY6Vscao718M4A778z4CGtvcwcGef5M9MEH1LGL"
+}
+
+variable "usdc_mint" {
+    description = "The USDC token mint address"
+    value = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+}
+
+variable "amount_x" {
+    description = "amount of usdc in 6 decimals"
+    value = 10000000000
+    editable = true
+}
+
+variable "_amount_y" {
+    description = "amount of saros"
+    value = 0
+    editable = true
+}
+
+action "setup_surfnet" "svm::setup_surfnet" {
+    set_token_account {
+        public_key = signer.user.public_key
+        token = variable.usdc_mint
+        amount = 1000000000000  // 1M USDC
+        token_program = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+    }
+}
+
+action "deposit_funds" "svm::process_instructions" {
+    signers = [signer.user]
+    instruction {
+        program_idl = program.idl
+        instruction_name = "deposit_funds"
+        instruction_args = [amount_x, _amount_y]
+        
+        authority {
+            public_key = signer.user.public_key
+        }
+        vault {
+            public_key = svm::find_pda(
+                program.program_id,
+                [
+                    "resonance-vault",
+                    signer.user.public_key
+                ]
+            )
+        }
+        mint_x {
+            public_key = variable.usdc_mint
+        }
+       
+        system_program {
+            public_key = "11111111111111111111111111111111"
+        }
+        token_program {
+            public_key = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+        associated_token_program {
+            public_key = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+    }
+}
+
+output "vault_address" {
+    description = "The address of the initialized vault"
+    value = svm::find_pda(
+        action.deploy_program.program_id,
+        [
+            "resonance-vault",
+            signer.user.public_key
+        ]
+    )
+}
+
+output "transaction_signature" {
+    description = "The signature of the initialize vault transaction"
+    value = action.initialize_vault.signature
+}
