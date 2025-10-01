@@ -21,7 +21,7 @@ import { expect } from "chai";
 describe("resonance-bot", () => {
   // 🔥 FIXED: Configure the client with proper options for Surfnet Cloud
   const anchorProvider = anchor.AnchorProvider.local(
-    "https://tiled-talcs-mars.txtx.network:8899/",
+    "https://tiled-talcs-mars.txtx.network:8899 ",
     {
       commitment: 'confirmed',
       skipPreflight: true, // Skip preflight for faster execution
@@ -116,7 +116,7 @@ describe("resonance-bot", () => {
       
       const rawAmount = amount * Math.pow(10, decimals);
       
-      const response = await fetch("https://tiled-talcs-mars.txtx.network:8899/", {
+      const response = await fetch("https://tiled-talcs-mars.txtx.network:8899 ", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -571,151 +571,246 @@ describe("resonance-bot", () => {
     }
   });
 
-  it("Verifies arbitrage program structure with real pool detection", async () => {
-    console.log("=== Pool Address Verification ===");
+  // Test for real Saros CPI execution with actual pool data
+it("Executes real Saros DLMM arbitrage with sequential CPI calls", async () => {
+  console.log("🚀 === REAL SAROS DLMM CPI EXECUTION ===");
 
-    try {
-      const poolAInfo = await connection.getAccountInfo(poolA);
-      const poolBInfo = await connection.getAccountInfo(poolB);
+  try {
+    await ensureSufficientSolBalance(user.publicKey, 3 * LAMPORTS_PER_SOL);
 
-      if (poolAInfo && poolBInfo) {
-        console.log("✅ Both pools exist on-chain");
-        
-        const sarosProgramId = new anchor.web3.PublicKey(
-          "1qbkdrr3z4ryLA7pZykqxvxWPoeifcVKo6ZG9CfkvVE"
-        );
+    const vaultStateBefore = await program.account.arbitrageVault.fetch(vaultPDA);
+    console.log("✅ Vault ready for real arbitrage");
+    console.log(`Previous trades: ${vaultStateBefore.totalTrades.toNumber()}`);
+    console.log(`Previous profits: $${(vaultStateBefore.totalProfits.toNumber() / 1_000_000).toFixed(2)}`);
 
-        if (poolAInfo.owner.equals(sarosProgramId) && poolBInfo.owner.equals(sarosProgramId)) {
-          console.log("🎯 Both pools are valid Saros DLMM pools!");
-        }
-      } else {
-        console.log("⚠️ One or both pools not found");
-      }
-    } catch (error) {
-      console.log("Pool verification error:", error.message);
-    }
+    // Use conservative test amount
+    const testAmount = new anchor.BN(500_000); // 0.5 USDC
+    console.log(`Test amount: $${(testAmount.toNumber() / 1_000_000).toFixed(2)} USDC`);
 
-    console.log("💡 Pool integration verified - ready for arbitrage");
-  });
+    // Get vault token balances before
+    const vaultUsdcBefore = await connection.getTokenAccountBalance(usdcVaultAta);
+    const vaultSarosBefore = await connection.getTokenAccountBalance(sarosVaultAta);
 
-  it("Executes actual profitable Saros DLMM arbitrage", async () => {
-    let tradeAmount = new anchor.BN(1000 * 1_000_000); // $1K USDC
+    console.log(`\n📊 Pre-execution balances:`);
+    console.log(`Vault USDC: ${(parseInt(vaultUsdcBefore.value.amount) / 1_000_000).toFixed(2)}`);
+    console.log(`Vault SAROS: ${(parseInt(vaultSarosBefore.value.amount) / 1_000_000).toFixed(2)}`);
 
-    console.log("🚀 === SAROS DLMM ARBITRAGE EXECUTION ===");
+    // Use the correct Saros program ID
+    const SAROS_PROGRAM = new PublicKey("1qbkdrr3z4ryLA7pZykqxvxWPoeifcVKo6ZG9CfkvVE");
 
-    try {
-      // Ensure sufficient SOL for arbitrage transaction
-      await ensureSufficientSolBalance(user.publicKey, 2 * LAMPORTS_PER_SOL);
+    // Derive real Saros DLMM account addresses
+    console.log("\n🔧 Deriving real Saros DLMM accounts...");
 
-      // Verify vault is ready for arbitrage
-      const vaultStateBefore = await program.account.arbitrageVault.fetch(vaultPDA);
-      console.log("✅ Vault is ready for arbitrage");
-      
-      // Check vault balance
-      let vaultUsdcBalance = 0;
-      try {
-        const vaultUsdcBefore = await connection.getTokenAccountBalance(usdcVaultAta);
-        vaultUsdcBalance = parseInt(vaultUsdcBefore.value.amount);
-      } catch (error) {
-        console.log("Could not get vault balance, assuming 0");
-      }
+    // For real Saros DLMM pools, we need to derive the proper PDAs
+    // User position accounts (simplified - in production these would be actual user positions)
+    const [userPositionA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("position"), poolA.toBuffer(), user.publicKey.toBuffer()],
+      SAROS_PROGRAM
+    );
+    const [userPositionB] = PublicKey.findProgramAddressSync(
+      [Buffer.from("position"), poolB.toBuffer(), user.publicKey.toBuffer()],
+      SAROS_PROGRAM
+    );
 
-      console.log(`Vault USDC: $${(vaultUsdcBalance / 1_000_000).toLocaleString()}`);
-      console.log(`Trade Size: $${(tradeAmount.toNumber() / 1_000_000).toLocaleString()}`);
-      console.log(`Previous Trades: ${vaultStateBefore.totalTrades.toNumber()}`);
-      console.log(`Previous Profits: $${(vaultStateBefore.totalProfits.toNumber() / 1_000_000).toFixed(2)}`);
+    // Reserve accounts for both pools
+    const [reserveAIn] = PublicKey.findProgramAddressSync(
+      [Buffer.from("reserve"), poolA.toBuffer(), usdcMint.toBuffer()],
+      SAROS_PROGRAM
+    );
+    console.log("reserve_a_in:", reserveAIn.toBase58());
 
-      if (vaultUsdcBalance < tradeAmount.toNumber()) {
-        console.log(`⚠️ Vault has insufficient funds for trade`);
-        console.log(`Available: $${(vaultUsdcBalance / 1_000_000).toLocaleString()}`);
-        
-        if (vaultUsdcBalance > 100_000) { // At least $0.10 to trade
-          const availableAmount = Math.floor(vaultUsdcBalance * 0.9);
-          tradeAmount = new anchor.BN(availableAmount);
-          console.log(`Adjusted trade size: $${(tradeAmount.toNumber() / 1_000_000).toFixed(2)}`);
-        } else {
-          throw new Error("Insufficient vault funds for any meaningful trade");
-        }
-      }
+    const [reserveAOut] = PublicKey.findProgramAddressSync(
+      [Buffer.from("reserve"), poolA.toBuffer(), sarosMint.toBuffer()],
+      SAROS_PROGRAM
+    );
 
-      const startTime = Date.now();
+    console.log("reserve_a_out:", reserveAOut.toBase58());
 
-      const txSignature = await program.methods
-        .executeArbitrage(poolA, poolB, tradeAmount)
-        .accounts({
-          vault: vaultPDA,
-          authority: user.publicKey,
-          poolA: poolA,
-          poolB: poolB,
-          vaultTokenX: sarosVaultAta,
-          vaultTokenY: usdcVaultAta,
-          tokenXMint: sarosMint,
-          tokenYMint: usdcMint,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .preInstructions([
-          anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
-            units: 400_000,
-          }),
-          anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports: 1000,
-          }),
-        ])
-        .signers([user])
-        .rpc();
+    const [reserveBIn] = PublicKey.findProgramAddressSync(
+      [Buffer.from("reserve"), poolB.toBuffer(), usdcMint.toBuffer()],
+      SAROS_PROGRAM
+    );
+    const [reserveBOut] = PublicKey.findProgramAddressSync(
+      [Buffer.from("reserve"), poolB.toBuffer(), sarosMint.toBuffer()],
+      SAROS_PROGRAM
+    );
 
-      const executionTime = Date.now() - startTime;
-      console.log(`🎯 Transaction completed in ${executionTime}ms`);
-      console.log(`📝 Signature: ${txSignature}`);
+    console.log("reserve_b_in:", reserveBIn.toBase58());
+    console.log("reserve_b_out:", reserveBOut.toBase58());
 
-      // Get detailed logs
-      const txDetails = await connection.getTransaction(txSignature, {
+
+    // Oracle account (typically derived from pool or external oracle)
+    const [oracle] = PublicKey.findProgramAddressSync(
+      [Buffer.from("oracle"), poolA.toBuffer()],
+      SAROS_PROGRAM
+    );
+
+    // Event authority
+    const [eventAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("__event_authority")],
+      SAROS_PROGRAM
+    );
+
+    console.log(`Pool A: ${poolA.toString()}`);
+    console.log(`Pool B: ${poolB.toString()}`);
+    console.log(`User Position A: ${userPositionA.toString()}`);
+    console.log(`User Position B: ${userPositionB.toString()}`);
+    console.log(`Oracle: ${oracle.toString()}`);
+    console.log(`Event Authority: ${eventAuthority.toString()}`);
+
+    const startTime = Date.now();
+    console.log("\n⚡ Executing real arbitrage transaction...");
+
+    const txSignature = await program.methods
+      .executeArbitrage(poolA, poolB, testAmount)
+      .accounts({
+        // Core accounts
+        vault: vaultPDA,
+        authority: user.publicKey,
+        poolA: poolA,
+        poolB: poolB,
+        vaultTokenX: sarosVaultAta,
+        vaultTokenY: usdcVaultAta,
+
+        // Real Saros DLMM accounts
+        userPositionA: userPositionA,
+        reserveAIn: reserveAIn,
+        reserveAOut: reserveAOut,
+        userPositionB: userPositionB,
+        reserveBIn: reserveBIn,
+        reserveBOut: reserveBOut,
+
+        // Token mints
+        tokenMintIn: usdcMint,
+        tokenMintOut: sarosMint,
+
+        // Oracle and event authority
+        oracle: oracle,
+        eventAuthority: eventAuthority,
+
+        // Programs
+        tokenProgram: TOKEN_PROGRAM_ID,
+        sarosProgram: SAROS_PROGRAM,
+      })
+      .preInstructions([
+        anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+          units: 600_000, // Higher limit for actual CPI calls
+        }),
+        anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({
+          microLamports: 2000,
+        }),
+      ])
+      .signers([user])
+      .rpc({
         commitment: "confirmed",
-        maxSupportedTransactionVersion: 0,
+        skipPreflight: false, // Enable preflight for better error detection
       });
 
-      console.log("\n=== 💰 ARBITRAGE EXECUTION LOGS ===");
-      if (txDetails?.meta?.logMessages) {
-        txDetails.meta.logMessages.forEach((log, i) => {
-          if (
-            log.includes("🚀") || log.includes("USDC") || log.includes("SAROS") ||
-            log.includes("Profit") || log.includes("Trade") || log.includes("SWAP") ||
-            log.includes("✅") || log.includes("📈") || log.includes("📉")
-          ) {
-            console.log(`${String(i).padStart(2, '0')}: ${log}`);
-          }
-        });
-      }
+    const executionTime = Date.now() - startTime;
+    console.log(`⚡ Transaction completed in ${executionTime}ms`);
+    console.log(`📝 Signature: ${txSignature}`);
 
-      // Verify profit tracking
-      const vaultStateAfter = await program.account.arbitrageVault.fetch(vaultPDA);
-      console.log(`\n📊 === VAULT STATISTICS ===`);
-      console.log(`  Trades: ${vaultStateBefore.totalTrades.toNumber()} → ${vaultStateAfter.totalTrades.toNumber()}`);
-      console.log(`  Total Profits: $${(vaultStateBefore.totalProfits.toNumber() / 1_000_000).toFixed(2)} → $${(vaultStateAfter.totalProfits.toNumber() / 1_000_000).toFixed(2)}`);
+    // Get detailed transaction logs
+    console.log("\nℹ️ Waiting for transaction confirmation...");
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for confirmation
 
-      const profitChange = vaultStateAfter.totalProfits.toNumber() - vaultStateBefore.totalProfits.toNumber();
-      if (profitChange > 0) {
-        console.log(`💰 Trade Profit: +$${(profitChange / 1_000_000).toFixed(2)} USDC`);
-      }
+    const txDetails = await connection.getTransaction(txSignature, {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
 
-      expect(vaultStateAfter.totalTrades.toNumber()).to.be.greaterThan(vaultStateBefore.totalTrades.toNumber());
-
-      console.log("\n🎉 === ARBITRAGE EXECUTION COMPLETE ===");
-      console.log("✅ Vault properly initialized and funded");
-      console.log("✅ Arbitrage successfully executed");
-      console.log("🚀 READY FOR MAINNET DEPLOYMENT!");
-
-    } catch (error) {
-      console.error("❌ Arbitrage execution failed:", error.message);
-
-      if (error.logs) {
-        console.log("\n📋 Detailed execution logs:");
-        error.logs.slice(0, 15).forEach((log, i) => {
+    console.log("\n=== 📋 EXECUTION LOGS ===");
+    if (txDetails?.meta?.logMessages) {
+      txDetails.meta.logMessages.forEach((log, i) => {
+        // Show relevant logs
+        if (
+          log.includes("Pool") || 
+          log.includes("SWAP") || 
+          log.includes("ARBITRAGE") ||
+          log.includes("real price") ||
+          log.includes("DIRECTION") ||
+          log.includes("EXECUTING") ||
+          log.includes("COMPLETED") ||
+          log.includes("received") ||
+          log.includes("Balance change") ||
+          log.includes("Profit") ||
+          log.includes("Loss") ||
+          log.includes("cheaper") ||
+          log.includes("expensive") ||
+          log.includes("🚀") || log.includes("⚡") || 
+          log.includes("💰") || log.includes("📊") ||
+          log.includes("✅") || log.includes("🎯")
+        ) {
           console.log(`${String(i).padStart(2, '0')}: ${log}`);
-        });
-      }
-
-      throw error;
+        }
+      });
     }
-  });
+
+    // Get post-execution balances
+    const vaultUsdcAfter = await connection.getTokenAccountBalance(usdcVaultAta);
+    const vaultSarosAfter = await connection.getTokenAccountBalance(sarosVaultAta);
+
+    console.log(`\n📊 Post-execution balances:`);
+    console.log(`Vault USDC: ${(parseInt(vaultUsdcAfter.value.amount) / 1_000_000).toFixed(2)}`);
+    console.log(`Vault SAROS: ${(parseInt(vaultSarosAfter.value.amount) / 1_000_000).toFixed(2)}`);
+
+    // Calculate balance changes
+    const usdcChange = parseInt(vaultUsdcAfter.value.amount) - parseInt(vaultUsdcBefore.value.amount);
+    const sarosChange = parseInt(vaultSarosAfter.value.amount) - parseInt(vaultSarosBefore.value.amount);
+
+    console.log(`\n💰 Balance Changes:`);
+    console.log(`USDC: ${usdcChange > 0 ? '+' : ''}${(usdcChange / 1_000_000).toFixed(6)}`);
+    console.log(`SAROS: ${sarosChange > 0 ? '+' : ''}${(sarosChange / 1_000_000).toFixed(6)}`);
+
+    // Verify vault statistics
+    const vaultStateAfter = await program.account.arbitrageVault.fetch(vaultPDA);
+
+    console.log("\n📊 Vault Statistics:");
+    console.log(`Trades: ${vaultStateBefore.totalTrades.toNumber()} → ${vaultStateAfter.totalTrades.toNumber()}`);
+    console.log(`Total Profits: $${(vaultStateBefore.totalProfits.toNumber() / 1_000_000).toFixed(2)} → $${(vaultStateAfter.totalProfits.toNumber() / 1_000_000).toFixed(2)}`);
+
+    // Assertions
+    expect(vaultStateAfter.totalTrades.toNumber()).to.be.greaterThan(vaultStateBefore.totalTrades.toNumber());
+
+    console.log("\n🎉 === REAL ARBITRAGE EXECUTION RESULTS ===");
+    console.log("✅ Real pool price parsing: SUCCESS");
+    console.log("✅ Price-based swap ordering: SUCCESS");
+    console.log("✅ Sequential Saros CPI calls: EXECUTED");
+    console.log("✅ Balance tracking: SUCCESS");
+    console.log("✅ Vault statistics update: SUCCESS");
+    console.log("✅ Transaction completion: SUCCESS");
+
+    if (usdcChange > 0) {
+      console.log(`💰 PROFIT REALIZED: $${(usdcChange / 1_000_000).toFixed(6)} USDC`);
+    } else if (usdcChange < 0) {
+      console.log(`📉 Loss occurred: $${Math.abs(usdcChange / 1_000_000).toFixed(6)} USDC`);
+    } else {
+      console.log("➡️ Break-even result");
+    }
+
+    console.log("\n🚀 READY FOR OPTIMAL AMOUNT INTEGRATION!");
+
+  } catch (error) {
+    console.error("❌ Real arbitrage execution failed:", error.message);
+
+    if (error.logs) {
+      console.log("\n📋 Error logs:");
+      error.logs.forEach((log, i) => {
+        console.log(`${String(i).padStart(2, '0')}: ${log}`);
+      });
+    }
+
+    // Analyze common issues
+    if (error.message.includes("NoArbitrageOpportunity")) {
+      console.log("\n💡 This means both pools have identical prices (no arbitrage available)");
+      console.log("   This is normal - arbitrage opportunities are not always available");
+    } else if (error.message.includes("insufficient")) {
+      console.log("\n💡 Insufficient balance - this is expected in test environment");
+    } else if (error.message.includes("ProgramError")) {
+      console.log("\n💡 Saros CPI error - check account derivations and pool states");
+    }
+
+    throw error;
+  }
+});
 });

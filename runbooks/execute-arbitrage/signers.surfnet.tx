@@ -1,0 +1,15 @@
+signer "payer" "svm::secret_key" {
+  description = "Pays fees for program deployments and operations"
+  keypair_json = "~/.config/solana/id.json"
+  // See documentation for other options (mnemonic, etc): https://docs.surfpool.run/iac/svm/signers
+}
+
+signer "authority" "svm::secret_key" {
+  description = "Can upgrade programs and manage critical operations"
+  keypair_json = "~/.config/solana/id.json"
+}
+
+signer "user" "svm::secret_key" {
+  description = "User account that will initialize and operate the vault"
+  keypair_json = "/Users/amalnathsathyan/Documents/trycatchblock/my-projects/resonance-bot/tests/test-keys/user.json"
+}

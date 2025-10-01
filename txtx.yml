@@ -11,6 +11,9 @@ runbooks:
   - name: deposit_funds     # Add this new runbook
     description: Initialize vault with proper accounts
     location: runbooks/deposit-funds 
+  - name: execute_arbitrage    # Add this new runbook
+    description: real abitrage
+    location: runbooks/execute-arbitrage
 environments:
   localnet:
       network_id: localnet

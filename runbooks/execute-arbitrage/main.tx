@@ -1,0 +1,166 @@
+addon "svm" {
+  rpc_api_url = input.rpc_api_url
+  network_id  = input.network_id
+}
+
+signer "user" "svm::secret_key" {
+  keypair_json = "/Users/amalnathsathyan/Documents/trycatchblock/my-projects/resonance-bot/tests/test-keys/user.json"
+}
+
+variable "program" {
+  value = svm::get_program_from_anchor_project("resonance_bot")
+}
+
+variable "vault" {
+  value = "8kLQW3N4TNuDjNwhQ5vdNyQpe7Pxy93Ce91c8GsFbpma"
+}
+
+variable "pool_a" {
+  value = "GNDi5xLZm26vpVyBbVL9JrDPXR88nQfcPPsmnZQQcbTh"
+}
+
+variable "pool_b" {
+  value = "ADPKeitAZsAeRJfhG2GoDrZENB3xt9eZmggkj7iAXY78"
+}
+
+variable "vault_token_x" {
+  value = "HEiczUF6FwScDybEqjkzvs4ZAmWiHbUVHZPN5zKs9ZT7"
+}
+
+variable "vault_token_y" {
+  value = "7bH9YWQNdzAfosAXGp3CHH3V34g3KjwXNEHNr9SLKMFx"
+}
+
+variable "user_position_a" {
+  value = "7X9PkRUJWmhQ8ewGnh3Z8TUkc7BYPZejFY8MZbqTzC7h"
+}
+
+variable "reserve_a_in" {
+  value = "9YR5npPp9aJPwzcUNbzf1HGki4ViXsFQXY6DxPKUq8Tm"
+}
+
+variable "reserve_a_out" {
+  value = "CAe6BxuNDJyxSSRkbzKVxd4XC54TvdK1ea2mufvcEfKx"
+}
+
+variable "user_position_b" {
+  value = "HHPL2tqhAaT7eMuMjeptxQmAuvJ72S3nF2ujvNhpocmA"
+}
+
+variable "reserve_b_in" {
+  value = "Enh1U3kLXrw4xE6cS9qRfPAjDrM3VeX95vyajj31zD9r"
+}
+
+variable "reserve_b_out" {
+  value = "7VF4TbXpqUtdwUKEVaJN6TUxWWh6Y19tKcWGKkVfQuoQ"
+}
+
+variable "token_mint_in" {
+  value = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+}
+
+variable "token_mint_out" {
+  value = "SarosY6Vscao718M4A778z4CGtvcwcGef5M9MEH1LGL"
+}
+
+variable "oracle" {
+  value = "Ny8mFKFutRYUHuVDXEr16MoTocpKN554SSSWH2MXsPm"
+}
+
+variable "event_authority" {
+  value = "AQjz6RZK93SLjxfDGKL9nCYQNSjEbQSdETxwR63jXV8m"
+}
+
+variable "token_program" {
+  value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+}
+
+variable "saros_program" {
+  value = "1qbkdrr3z4ryLA7pZykqxvxWPoeifcVKo6ZG9CfkvVE"
+}
+
+variable "max_amount_in" {
+  value = null
+  editable = true
+}
+
+action "execute_arbitrage" "svm::process_instructions" {
+  signers = [signer.user]
+
+  instruction {
+    program_idl      = variable.program.idl
+    instruction_name = "execute_arbitrage"
+    instruction_args = [variable.pool_a, variable.pool_b, variable.max_amount_in]
+
+    vault {
+      public_key = variable.vault
+      is_writable = true
+    }
+    authority {
+      public_key = signer.user.public_key
+      is_signer = true
+    }
+    pool_a {
+      public_key = variable.pool_a
+      is_writable = true
+    }
+    pool_b {
+      public_key = variable.pool_b
+      is_writable = true
+    }
+    vault_token_x {
+      public_key = variable.vault_token_x
+      is_writable = true
+    }
+    vault_token_y {
+      public_key = variable.vault_token_y
+      is_writable = true
+    }
+    user_position_a {
+      public_key = variable.user_position_a
+      is_writable = true
+    }
+    reserve_a_in {
+      public_key = variable.reserve_a_in
+      is_writable = true
+    }
+    reserve_a_out {
+      public_key = variable.reserve_a_out
+      is_writable = true
+    }
+    user_position_b {
+      public_key = variable.user_position_b
+      is_writable = true
+    }
+    reserve_b_in {
+      public_key = variable.reserve_b_in
+      is_writable = true
+    }
+    reserve_b_out {
+      public_key = variable.reserve_b_out
+      is_writable = true
+    }
+    token_mint_in {
+      public_key = variable.token_mint_in
+    }
+    token_mint_out {
+      public_key = variable.token_mint_out
+    }
+    oracle {
+      public_key = variable.oracle
+    }
+    event_authority {
+      public_key = variable.event_authority
+    }
+    token_program {
+      public_key = variable.token_program
+    }
+    saros_program {
+      public_key = variable.saros_program
+    }
+  }
+}
+
+output "transaction_signature" {
+  value = action.execute_arbitrage.signature
+}
