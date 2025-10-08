@@ -3,9 +3,9 @@ use anchor_spl::token::{Token, TokenAccount, Mint};
 use crate::state::{ArbitrageVault, PoolState};
 use crate::utils::saros_cpi::{
     SAROS_DLMM_PROGRAM_ID,
-    saros_swap_exact_tokens_for_tokens,
+    saros_swap,
     SarosSwapAccounts,
-    SwapRequest,
+    SwapParams,
 };
 use crate::error::ResonanceError;
 
@@ -18,71 +18,58 @@ pub struct ExecuteArbitrage<'info> {
         has_one = authority @ ResonanceError::InvalidProgram
     )]
     pub vault: Account<'info, ArbitrageVault>,
-
     pub authority: Signer<'info>,
 
-    // Real Saros DLMM pools
-    /// CHECK: Real Saros DLMM pool A
-    #[account(
-        mut,
-        constraint = pool_a.owner == &SAROS_DLMM_PROGRAM_ID @ ResonanceError::InvalidPoolOwner
-    )]
+    // Pool A accounts
+    /// CHECK: Saros DLMM pool A
+    #[account(mut)]
     pub pool_a: AccountInfo<'info>,
+    /// CHECK: Pool A bin array lower
+    #[account(mut)]
+    pub bin_array_lower_a: AccountInfo<'info>,
+    /// CHECK: Pool A bin array upper
+    #[account(mut)]
+    pub bin_array_upper_a: AccountInfo<'info>,
+    /// CHECK: Pool A token vault X
+    #[account(mut)]
+    pub token_vault_x_a: AccountInfo<'info>,
+    /// CHECK: Pool A token vault Y
+    #[account(mut)]
+    pub token_vault_y_a: AccountInfo<'info>,
 
-    /// CHECK: Real Saros DLMM pool B  
-    #[account(
-        mut,
-        constraint = pool_b.owner == &SAROS_DLMM_PROGRAM_ID @ ResonanceError::InvalidPoolOwner
-    )]
+    // Pool B accounts
+    /// CHECK: Saros DLMM pool B
+    #[account(mut)]
     pub pool_b: AccountInfo<'info>,
+    /// CHECK: Pool B bin array lower
+    #[account(mut)]
+    pub bin_array_lower_b: AccountInfo<'info>,
+    /// CHECK: Pool B bin array upper
+    #[account(mut)]
+    pub bin_array_upper_b: AccountInfo<'info>,
+    /// CHECK: Pool B token vault X
+    #[account(mut)]
+    pub token_vault_x_b: AccountInfo<'info>,
+    /// CHECK: Pool B token vault Y
+    #[account(mut)]
+    pub token_vault_y_b: AccountInfo<'info>,
 
     // Vault token accounts
     #[account(mut)]
-    pub vault_token_x: Account<'info, TokenAccount>, // SAROS
-
+    pub vault_token_x: Account<'info, TokenAccount>,
     #[account(mut)]
-    pub vault_token_y: Account<'info, TokenAccount>, // USDC
-
-    // Pool A CPI accounts
-    /// CHECK: Pool A user position account
-    #[account(mut)]
-    pub user_position_a: AccountInfo<'info>,
-
-    /// CHECK: Pool A reserve for input token
-    #[account(mut)]
-    pub reserve_a_in: AccountInfo<'info>,
-
-    /// CHECK: Pool A reserve for output token
-    #[account(mut)]
-    pub reserve_a_out: AccountInfo<'info>,
-
-    // Pool B CPI accounts  
-    /// CHECK: Pool B user position account
-    #[account(mut)]
-    pub user_position_b: AccountInfo<'info>,
-
-    /// CHECK: Pool B reserve for input token
-    #[account(mut)]
-    pub reserve_b_in: AccountInfo<'info>,
-
-    /// CHECK: Pool B reserve for output token
-    #[account(mut)]
-    pub reserve_b_out: AccountInfo<'info>,
+    pub vault_token_y: Account<'info, TokenAccount>,
 
     // Token mints
-    pub token_mint_in: Account<'info, Mint>,  // USDC mint
-    pub token_mint_out: Account<'info, Mint>, // SAROS mint
+    pub token_mint_x: Account<'info, Mint>,
+    pub token_mint_y: Account<'info, Mint>,
 
-    // Additional Saros required accounts
-    /// CHECK: Oracle account for price data
-    pub oracle: AccountInfo<'info>,
-
-    /// CHECK: Event authority for Saros
+    /// CHECK: Event authority
     pub event_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
 
-    /// CHECK: Saros DLMM program
+    /// CHECK: Saros program
     #[account(constraint = saros_program.key() == SAROS_DLMM_PROGRAM_ID)]
     pub saros_program: AccountInfo<'info>,
 }
@@ -94,7 +81,7 @@ pub fn execute_arbitrage_handler(
     _pool_b_key: Pubkey,
     max_amount_in: Option<u64>,
 ) -> Result<()> {
-    let trade_amount = max_amount_in.unwrap_or(1_000_000); // Default 1 USDC
+    let trade_amount = max_amount_in.unwrap_or(100_000_000); // Default 100 USDC
     execute_arbitrage(ctx, trade_amount)
 }
 
@@ -129,14 +116,15 @@ pub fn execute_arbitrage(
     );
 
     // Determine swap ordering based on REAL price comparison
-    let (cheaper_pool, expensive_pool, cheaper_state, expensive_state, buy_from_a) = 
-        if pool_a_state.current_price < pool_b_state.current_price {
-            msg!("🎯 ARBITRAGE DIRECTION: Buy from Pool A (cheaper) → Sell to Pool B (expensive)");
-            (&ctx.accounts.pool_a, &ctx.accounts.pool_b, &pool_a_state, &pool_b_state, true)
-        } else {
-            msg!("🎯 ARBITRAGE DIRECTION: Buy from Pool B (cheaper) → Sell to Pool A (expensive)");
-            (&ctx.accounts.pool_b, &ctx.accounts.pool_a, &pool_b_state, &pool_a_state, false)
-        };
+    let buy_from_a = pool_a_state.current_price < pool_b_state.current_price;
+    
+    let (cheaper_state, expensive_state) = if buy_from_a {
+        msg!("🎯 ARBITRAGE DIRECTION: Buy from Pool A (cheaper) → Sell to Pool B (expensive)");
+        (&pool_a_state, &pool_b_state)
+    } else {
+        msg!("🎯 ARBITRAGE DIRECTION: Buy from Pool B (cheaper) → Sell to Pool A (expensive)");
+        (&pool_b_state, &pool_a_state)
+    };
 
     // Calculate price difference percentage  
     let price_diff_pct = if cheaper_state.current_price > 0 {
@@ -166,20 +154,21 @@ pub fn execute_arbitrage(
 
     execute_saros_swap_cpi(
         if buy_from_a { &ctx.accounts.pool_a } else { &ctx.accounts.pool_b },
-        if buy_from_a { &ctx.accounts.user_position_a } else { &ctx.accounts.user_position_b },
-        &ctx.accounts.vault_token_y, // USDC source
-        &ctx.accounts.vault_token_x, // SAROS destination
-        if buy_from_a { &ctx.accounts.reserve_a_in } else { &ctx.accounts.reserve_b_in },
-        if buy_from_a { &ctx.accounts.reserve_a_out } else { &ctx.accounts.reserve_b_out },
-        &ctx.accounts.token_mint_in,  // USDC mint
-        &ctx.accounts.token_mint_out, // SAROS mint
-        &ctx.accounts.oracle,
+        if buy_from_a { &ctx.accounts.bin_array_lower_a } else { &ctx.accounts.bin_array_lower_b },
+        if buy_from_a { &ctx.accounts.bin_array_upper_a } else { &ctx.accounts.bin_array_upper_b },
+        &ctx.accounts.vault_token_x,
+        &ctx.accounts.vault_token_y,
+        if buy_from_a { &ctx.accounts.token_vault_x_a } else { &ctx.accounts.token_vault_x_b },
+        if buy_from_a { &ctx.accounts.token_vault_y_a } else { &ctx.accounts.token_vault_y_b },
+        &ctx.accounts.token_mint_x,
+        &ctx.accounts.token_mint_y,
         &ctx.accounts.event_authority,
         &ctx.accounts.saros_program,
         &ctx.accounts.authority,
         &ctx.accounts.token_program,
         trade_amount,
         min_saros_out,
+        true, // swap_for_y = true (Y->X direction, USDC->SAROS)
         Some(signer_seeds),
     )?;
 
@@ -201,20 +190,21 @@ pub fn execute_arbitrage(
 
     execute_saros_swap_cpi(
         if buy_from_a { &ctx.accounts.pool_b } else { &ctx.accounts.pool_a },
-        if buy_from_a { &ctx.accounts.user_position_b } else { &ctx.accounts.user_position_a },
-        &ctx.accounts.vault_token_x, // SAROS source
-        &ctx.accounts.vault_token_y, // USDC destination
-        if buy_from_a { &ctx.accounts.reserve_b_in } else { &ctx.accounts.reserve_a_in },
-        if buy_from_a { &ctx.accounts.reserve_b_out } else { &ctx.accounts.reserve_a_out },
-        &ctx.accounts.token_mint_out, // SAROS mint (now input)
-        &ctx.accounts.token_mint_in,  // USDC mint (now output)
-        &ctx.accounts.oracle,
+        if buy_from_a { &ctx.accounts.bin_array_lower_b } else { &ctx.accounts.bin_array_lower_a },
+        if buy_from_a { &ctx.accounts.bin_array_upper_b } else { &ctx.accounts.bin_array_upper_a },
+        &ctx.accounts.vault_token_x,
+        &ctx.accounts.vault_token_y,
+        if buy_from_a { &ctx.accounts.token_vault_x_b } else { &ctx.accounts.token_vault_x_a },
+        if buy_from_a { &ctx.accounts.token_vault_y_b } else { &ctx.accounts.token_vault_y_a },
+        &ctx.accounts.token_mint_x,
+        &ctx.accounts.token_mint_y,
         &ctx.accounts.event_authority,
         &ctx.accounts.saros_program,
         &ctx.accounts.authority,
         &ctx.accounts.token_program,
         saros_received,
         min_usdc_out,
+        false, // swap_for_y = false (X->Y direction, SAROS->USDC)
         Some(signer_seeds),
     )?;
 
@@ -247,55 +237,49 @@ pub fn execute_arbitrage(
     Ok(())
 }
 
-/// Execute actual Saros CPI swap
+#[allow(clippy::too_many_arguments)]
 fn execute_saros_swap_cpi<'info>(
-    lb_pair: &AccountInfo<'info>,
-    user_position: &AccountInfo<'info>,
-    user_token_in: &Account<'info, TokenAccount>,
-    user_token_out: &Account<'info, TokenAccount>,
-    reserve_in: &AccountInfo<'info>,
-    reserve_out: &AccountInfo<'info>,
-    token_mint_in: &Account<'info, Mint>,
-    token_mint_out: &Account<'info, Mint>,
-    oracle: &AccountInfo<'info>,
+    pair: &AccountInfo<'info>,
+    bin_array_lower: &AccountInfo<'info>,
+    bin_array_upper: &AccountInfo<'info>,
+    user_vault_x: &Account<'info, TokenAccount>,
+    user_vault_y: &Account<'info, TokenAccount>,
+    token_vault_x: &AccountInfo<'info>,
+    token_vault_y: &AccountInfo<'info>,
+    token_mint_x: &Account<'info, Mint>,
+    token_mint_y: &Account<'info, Mint>,
     event_authority: &AccountInfo<'info>,
     saros_program: &AccountInfo<'info>,
     user: &Signer<'info>,
     token_program: &Program<'info, Token>,
     amount_in: u64,
     minimum_amount_out: u64,
+    swap_for_y: bool,
     signer_seeds: Option<&[&[&[u8]]]>,
 ) -> Result<()> {
-    let swap_request = SwapRequest {
+    let swap_params = SwapParams {
         amount_in,
         minimum_amount_out,
+        swap_for_y,
     };
 
     let swap_accounts = SarosSwapAccounts {
-        lb_pair: lb_pair.clone(),
-        user_position: user_position.clone(),
-        bin_array_bitmap_extension: None,
-        user_token_in: user_token_in.clone(),
-        user_token_out: user_token_out.clone(),
-        reserve_in: reserve_in.clone(),
-        reserve_out: reserve_out.clone(),
-        token_mint_in: token_mint_in.clone(),
-        token_mint_out: token_mint_out.clone(),
-        oracle: oracle.clone(),
-        host_fee_in: None,
+        pair: pair.clone(),
+        bin_array_lower: bin_array_lower.clone(),
+        bin_array_upper: bin_array_upper.clone(),
+        user_vault_x: user_vault_x.clone(),
+        user_vault_y: user_vault_y.clone(),
+        token_vault_x: token_vault_x.clone(),
+        token_vault_y: token_vault_y.clone(),
+        token_mint_x: token_mint_x.clone(),
+        token_mint_y: token_mint_y.clone(),
+        token_program_x: token_program.clone(),
+        token_program_y: token_program.clone(),
         user: user.clone(),
-        token_x_program: token_program.clone(),
-        token_y_program: token_program.clone(),
         event_authority: event_authority.clone(),
         program: saros_program.clone(),
     };
 
-    // Execute the actual Saros CPI call
-    saros_swap_exact_tokens_for_tokens(
-        &swap_accounts,
-        swap_request,
-        signer_seeds,
-    )?;
-
+    saros_swap(&swap_accounts, swap_params, signer_seeds)?;
     Ok(())
 }

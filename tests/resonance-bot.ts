@@ -20,14 +20,7 @@ import { expect } from "chai";
 
 describe("resonance-bot", () => {
   // 🔥 FIXED: Configure the client with proper options for Surfnet Cloud
-  const anchorProvider = anchor.AnchorProvider.local(
-    "https://tiled-talcs-mars.txtx.network:8899 ",
-    {
-      commitment: 'confirmed',
-      skipPreflight: true, // Skip preflight for faster execution
-      preflightCommitment: 'confirmed'
-    }
-  );
+  const anchorProvider = anchor.AnchorProvider.env();
   const connection = anchorProvider.connection;
   anchor.setProvider(anchorProvider);
 
@@ -584,7 +577,7 @@ it("Executes real Saros DLMM arbitrage with sequential CPI calls", async () => {
     console.log(`Previous profits: $${(vaultStateBefore.totalProfits.toNumber() / 1_000_000).toFixed(2)}`);
 
     // Use conservative test amount
-    const testAmount = new anchor.BN(500_000); // 0.5 USDC
+    const testAmount = new anchor.BN(3000_000_000); // 3000 USDC
     console.log(`Test amount: $${(testAmount.toNumber() / 1_000_000).toFixed(2)} USDC`);
 
     // Get vault token balances before

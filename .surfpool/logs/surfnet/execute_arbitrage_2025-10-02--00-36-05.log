@@ -1,0 +1,2 @@
+[2025-10-02--00-36-11 ERROR txtx::svm::send_transaction] Failed - Failed to broadcast transaction
+[2025-10-02--00-36-11 ERROR txtx::svm::send_transaction] Failed - error: unable to send and confirm transaction (RPC response error -32002: Transaction simulation failed: Transaction failed to sanitize accounts offsets correctly; )
