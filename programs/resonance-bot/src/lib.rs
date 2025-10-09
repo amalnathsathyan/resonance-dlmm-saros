@@ -8,7 +8,7 @@ pub mod error;
 
 pub use instructions::*;
 
-declare_id!("AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx");
+declare_id!("6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis");
 
 #[program]
 

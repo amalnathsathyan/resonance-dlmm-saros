@@ -12,6 +12,8 @@ pub struct ArbitrageVault {
 }
 
 impl ArbitrageVault {
-    pub const LEN: usize = 8 + 32 + 8 + 8 + 8 + 8 + 8 + 1; // 81 bytes total
+    // Space calculation: 32 + 8 + 8 + 8 + 8 + 8 + 1 = 73 bytes
+    // Add padding for alignment: round up to 80
+    pub const LEN: usize = 80;
     pub const SEED: &'static [u8] = b"resonance-vault";
 }

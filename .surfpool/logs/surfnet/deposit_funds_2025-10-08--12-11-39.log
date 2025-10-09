@@ -1,0 +1,14 @@
+[2025-10-08--12-11-41 INFO txtx::svm::setup_surfnet] Token Account Updated - Processed surfpool token account update #1/1 for 78EBjKUsSZFStAkpUtFo8oxxXGHa3Z7qjvTjbGHA6V4j
+[2025-10-08--12-11-45 ERROR txtx::svm::send_transaction] Failed - Failed to broadcast transaction
+[2025-10-08--12-11-45 ERROR txtx::svm::send_transaction] Failed - error: unable to send and confirm transaction (RPC response error -32002: Transaction simulation failed: Error processing Instruction 0: custom program error: 0xbc4: 5 log messages:
+Program 6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis invoke [1]
+Program log: Instruction: DepositFunds
+Program log: AnchorError caused by account: vault. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.
+Program 6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis consumed 3681 of 200000 compute units
+Program 6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis failed: custom program error: 0xbc4; 5 log messages:
+  Program 6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis invoke [1]
+  Program log: Instruction: DepositFunds
+  Program log: AnchorError caused by account: vault. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.
+  Program 6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis consumed 3681 of 200000 compute units
+  Program 6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis failed: custom program error: 0xbc4
+)

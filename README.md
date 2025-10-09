@@ -12,7 +12,7 @@
 
 **🏆 Built for:** [DLMM Demo Challenge by Saros | Superteam Earn](https://earn.superteam.fun/listing/dlmm-demo-challenge-1/)  
 **🌐 Network:** Custom Mainnet (`https://tiled-talcs-mars.txtx.network:8899`)  
-**📋 Program ID:** `AhTopKWSdP3wE4aBfWtp2tjJHRvAy4JVkfycPsPDW2kx`
+**📋 Program ID:** `6uURRoN8nHazwBhobnq6jMX3LENHDCa3ygYYEgfqwzis`
 
 ### The Genesis Story
 While monitoring various DLMM pools of the same token pairs (SAROS/USDC), I discovered consistent price parities across different pools. This observation sparked the realization that if transactions are atomic, competition becomes irrelevant—only the price difference at transaction execution matters. Resonance Bot evolved into a sophisticated arbitrage platform with complete vault lifecycle management.
